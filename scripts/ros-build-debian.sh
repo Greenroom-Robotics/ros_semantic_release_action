@@ -34,7 +34,7 @@ fakeroot debian/rules binary -j8 || exit $?
 
 # Install all build result
 echo "Install build result..."
-sudo dpkg --install ../*.deb || continue
+sudo dpkg --install ../*.deb || exit $?
 
 # Move build result to the output directory
 echo "Moving .deb files into $DEB_OUTPUT_DIRECTORY"
