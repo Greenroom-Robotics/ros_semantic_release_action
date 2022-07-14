@@ -41,6 +41,7 @@ runs:
         ROSDISTRO_OVERLAY_INDEX_URL: https://raw.githubusercontent.com/Greenroom-Robotics/rosdistro/main/overlay.yaml
         ROS2_DISTRO: galactic
         GHCR_PAT: ${{ inputs.token }}
+        API_TOKEN_GITHUB: ${{ inputs.token }}
         PACKAGES_DIRECTORY: packages
       run: bash ${GITHUB_ACTION_PATH}/scripts/ros-setup.sh
 
