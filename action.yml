@@ -19,13 +19,13 @@ runs:
       shell: bash
       run: curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3 -
 
-    - name: NPM install
-      shell: bash
-      run: yarn install --frozen-lockfile
-
     - name: Copy some assets into the repo root
       shell: bash
       run: cp ${GITHUB_ACTION_PATH}/package.json ${GITHUB_ACTION_PATH}/yarn.lock .
+
+    - name: NPM install
+      shell: bash
+      run: yarn install --frozen-lockfile
 
     - name: Poetry Install
       shell: bash
@@ -65,4 +65,5 @@ runs:
         PUBLISH_DESTINATION_FOLDER: "debian"
         PUBLISH_USER_NAME: "ci@greenroomrobotics.com"
         PUBLISH_USER_EMAIL: "Github CI"
+        GITHUB_ACTION_PATH: ${{ GITHUB_ACTION_PATH }}
       run: yarn release
