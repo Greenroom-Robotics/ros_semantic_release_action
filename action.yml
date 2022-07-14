@@ -52,6 +52,12 @@ runs:
         PACKAGES_DIRECTORY: packages
       run: bash ${GITHUB_ACTION_PATH}/scripts/ros-build.sh
 
+    - name: Generate package.jsons
+      shell: bash
+      env:
+         PACKAGES_DIRECTORY: packages
+      run: python3 scripts/generate-package-jsons.py
+
     - name: Semantic Release
       shell: bash
       env:
