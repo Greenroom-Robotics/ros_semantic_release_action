@@ -16,21 +16,27 @@ runs:
       uses: actions/setup-node@v2
 
     - name: Setup Poetry
+      shell: bash
       run: curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3 -
 
     - name: NPM install
+      shell: bash
       run: yarn install --frozen-lockfile
 
     - name: Copy some assets into the repo root
+      shell: bash
       run: cp ${GITHUB_ACTION_PATH}/package.json ${GITHUB_ACTION_PATH}/yarn.lock .
 
     - name: Poetry Install
+      shell: bash
       run: . $HOME/.poetry/env && poetry config virtualenvs.create false && find . -type f -name "pyproject.toml" -execdir poetry install \;
 
     - name: Chown
+      shell: bash
       run: chown -R $(whoami) .
 
     - name: ROS Setup
+      shell: bash
       env:
         ROSDISTRO_OVERLAY_INDEX_URL: https://raw.githubusercontent.com/Greenroom-Robotics/rosdistro/main/overlay.yaml
         ROS2_DISTRO: galactic
@@ -39,12 +45,14 @@ runs:
       run: bash ${GITHUB_ACTION_PATH}/scripts/ros-setup.sh
 
     - name: Colcon build
+      shell: bash
       env:
         ROS2_DISTRO: galactic
         PACKAGES_DIRECTORY: packages
       run: bash ${GITHUB_ACTION_PATH}/scripts/ros-build.sh
 
     - name: Semantic Release
+      shell: bash
       env:
         DEB_OUTPUT_DIRECTORY: "./deb-output"
         GITHUB_USER: ${{ github.actor }}
