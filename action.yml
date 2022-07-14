@@ -1,0 +1,59 @@
+name: "ROS Semantic Release Action"
+description: "Uses semantic release to build and release ros packages as debians"
+author: "Greenroom Robotics"
+branding:
+  icon: "package"
+  color: "gray-dark"
+inputs:
+  token:
+    description: "The Github token with access to the packages repo and release api"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v2
+
+    - name: Setup Poetry
+      run: curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3 -
+
+    - name: NPM install
+      run: yarn install --frozen-lockfile
+
+    - name: Copy some assets into the repo root
+      run: cp ${GITHUB_ACTION_PATH}/package.json ${GITHUB_ACTION_PATH}/yarn.lock .
+
+    - name: Poetry Install
+      run: . $HOME/.poetry/env && poetry config virtualenvs.create false && find . -type f -name "pyproject.toml" -execdir poetry install \;
+
+    - name: Chown
+      run: chown -R $(whoami) .
+
+    - name: ROS Setup
+      env:
+        ROSDISTRO_OVERLAY_INDEX_URL: https://raw.githubusercontent.com/Greenroom-Robotics/rosdistro/main/overlay.yaml
+        ROS2_DISTRO: galactic
+        GHCR_PAT: ${{ inputs.token }}
+        PACKAGES_DIRECTORY: packages
+      run: bash ${GITHUB_ACTION_PATH}/scripts/ros-setup.sh
+
+    - name: Colcon build
+      env:
+        ROS2_DISTRO: galactic
+        PACKAGES_DIRECTORY: packages
+      run: bash ${GITHUB_ACTION_PATH}/scripts/ros-build.sh
+
+    - name: Semantic Release
+      env:
+        DEB_OUTPUT_DIRECTORY: "./deb-output"
+        GITHUB_USER: ${{ github.actor }}
+        GITHUB_TOKEN: ${{ inputs.token }}
+        API_TOKEN_GITHUB: ${{ inputs.token }}
+        ROS2_DISTRO: galactic
+        PUBLISH_SOURCE_FILE: "./deb-output/*.deb"
+        PUBLISH_DESTINATION_REPO: "Greenroom-Robotics/packages"
+        PUBLISH_DESTINATION_FOLDER: "debian"
+        PUBLISH_USER_NAME: "ci@greenroomrobotics.com"
+        PUBLISH_USER_EMAIL: "Github CI"
+      run: yarn release
