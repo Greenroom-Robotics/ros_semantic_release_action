@@ -53,8 +53,8 @@
       [
         "@semantic-release/exec",
         {
-          "prepareCmd": "${GITHUB_ACTION_PATH}/scripts/ros-build-debian.sh ${nextRelease.version}",
-          "publishCmd": "${GITHUB_ACTION_PATH}/scripts/ros-publish-debian.sh"
+          "prepareCmd": "${env.GITHUB_ACTION_PATH}/scripts/ros-build-debian.sh ${nextRelease.version}",
+          "publishCmd": "${env.GITHUB_ACTION_PATH}/scripts/ros-publish-debian.sh"
         }
       ],
       [

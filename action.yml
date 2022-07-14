@@ -65,5 +65,4 @@ runs:
         PUBLISH_DESTINATION_FOLDER: "debian"
         PUBLISH_USER_NAME: "ci@greenroomrobotics.com"
         PUBLISH_USER_EMAIL: "Github CI"
-        GITHUB_ACTION_PATH: ${{ GITHUB_ACTION_PATH }}
       run: yarn release
