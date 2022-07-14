@@ -56,7 +56,7 @@ runs:
       shell: bash
       env:
          PACKAGES_DIRECTORY: packages
-      run: python3 scripts/generate-package-jsons.py
+      run: python3 ${GITHUB_ACTION_PATH}/scripts/generate-package-jsons.py
 
     - name: Semantic Release
       shell: bash
