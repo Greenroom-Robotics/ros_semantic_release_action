@@ -15,12 +15,6 @@ runs:
     - name: Setup Node.js
       uses: actions/setup-node@v2
 
-    - name: Print paths
-      shell: bash
-      run: |
-        echo $PWD
-        echo ${GITHUB_ACTION_PATH}
-
     - name: Setup Poetry
       shell: bash
       run: curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3 -
