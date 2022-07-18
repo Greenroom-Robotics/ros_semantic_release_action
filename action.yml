@@ -15,13 +15,13 @@ runs:
     - name: Setup Node.js
       uses: actions/setup-node@v2
 
-    - name: Load cached poetry
-      id: cached-poetry-dependencies
-      uses: actions/cache@v2
-      with:
-        path: |
-          ~/.cache/pypoetry
-        key: poetry-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+    # - name: Load cached poetry
+    #   id: cached-poetry-dependencies
+    #   uses: actions/cache@v2
+    #   with:
+    #     path: |
+    #       ~/.cache/pypoetry
+    #     key: poetry-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
 
     - name: Install poetry
       shell: bash
@@ -38,10 +38,10 @@ runs:
       shell: bash
       run: yarn install --frozen-lockfile
 
-    - name: Poetry Install
-      shell: bash
-      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-      run: python3 ${GITHUB_ACTION_PATH}/scripts/poetry-install.py
+    # - name: Poetry Install
+    #   shell: bash
+    #   if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+    #   run: python3 ${GITHUB_ACTION_PATH}/scripts/poetry-install.py
 
     - name: Chown
       shell: bash
