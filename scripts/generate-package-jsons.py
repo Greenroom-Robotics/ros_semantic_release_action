@@ -24,7 +24,7 @@ if __name__ == "__main__":
         package_json_path = str(Path(package_xml_path).parent / "package.json")
 
         print(bcolors.OKCYAN + f"Writing {package_json_path}" + bcolors.ENDC)
-        f = open(package_json_path, "a")
+        f = open(package_json_path, "w")
         f.write(json.dumps(package_json, indent="    "))
         f.close()
 
