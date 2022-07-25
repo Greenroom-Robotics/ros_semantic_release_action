@@ -64,7 +64,8 @@
             {
               "path": "./deb-output/*.deb"
             }
-          ]
+          ],
+          "successComment": false
         }
       ],
       [
