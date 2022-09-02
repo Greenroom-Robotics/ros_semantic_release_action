@@ -8,6 +8,10 @@ inputs:
   token:
     description: "The Github token with access to the packages repo and release api"
     required: true
+  packages_directory:
+    description: "The directory in which ros packages are located"
+    required: false
+    default: packages
 
 runs:
   using: "composite"
@@ -54,20 +58,20 @@ runs:
         ROS2_DISTRO: galactic
         GHCR_PAT: ${{ inputs.token }}
         API_TOKEN_GITHUB: ${{ inputs.token }}
-        PACKAGES_DIRECTORY: packages
+        PACKAGES_DIRECTORY: ${{ inputs.package_directory }}
       run: bash ${GITHUB_ACTION_PATH}/scripts/ros-setup.sh
 
     - name: Colcon build
       shell: bash
       env:
         ROS2_DISTRO: galactic
-        PACKAGES_DIRECTORY: packages
+        PACKAGES_DIRECTORY: ${{ inputs.package_directory }}
       run: bash ${GITHUB_ACTION_PATH}/scripts/ros-build.sh
 
     - name: Generate package.jsons
       shell: bash
       env:
-         PACKAGES_DIRECTORY: packages
+        PACKAGES_DIRECTORY: ${{ inputs.package_directory }}
       run: python3 ${GITHUB_ACTION_PATH}/scripts/generate-package-jsons.py
 
     - name: Semantic Release
