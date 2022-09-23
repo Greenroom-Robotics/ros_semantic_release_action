@@ -64,6 +64,8 @@ git add .
 if git status | grep -q "Changes to be committed"
 then
   git commit --message "$PUBLISH_COMMIT_MESSAGE"
+  echo "Pull and rebase in case another deb has been publishes"
+  git pull -r
   echo "Pushing git commit"
   git push -u origin HEAD:"$OUTPUT_BRANCH" --force
 else
