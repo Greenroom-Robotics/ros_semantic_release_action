@@ -27,7 +27,7 @@ jobs:
         uses: Greenroom-Robotics/ros_semantic_release_action@main
         with:
           token: ${{ secrets.API_TOKEN_GITHUB }}
-          ros_distro: galactic
+          ros2_distro: galactic
 ```
 
 or
@@ -54,7 +54,7 @@ jobs:
         uses: Greenroom-Robotics/ros_semantic_release_action@main
         with:
           token: ${{ secrets.API_TOKEN_GITHUB }}
-          ros_distro: humble
+          ros2_distro: humble
 ```
 
 or both:
@@ -70,11 +70,11 @@ jobs:
   release:
     strategy:
       matrix:
-        ros_distro: [galactic, humble]
+        ros2_distro: [galactic, humble]
     name: Release
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/greenroom-robotics/ros_builder:${{ matrix.ros_distro }}-latest
+      image: ghcr.io/greenroom-robotics/ros_builder:${{ matrix.ros2_distro }}-latest
       options: --user root
 
     steps:
@@ -85,7 +85,7 @@ jobs:
         uses: Greenroom-Robotics/ros_semantic_release_action@main
         with:
           token: ${{ secrets.API_TOKEN_GITHUB }}
-          ros_distro: ${{ matrix.ros_distro }}
+          ros2_distro: ${{ matrix.ros2_distro }}
 ```
 
 ## Notes
