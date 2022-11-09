@@ -16,7 +16,7 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/greenroom-robotics/ros_builder:galactic_latest
+      image: ghcr.io/greenroom-robotics/ros_builder:galactic=latest
       options: --user root
 
     steps:
