@@ -74,7 +74,7 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/greenroom-robotics/ros_builder:${{ matrix.ros_distro }}_latest
+      image: ghcr.io/greenroom-robotics/ros_builder:latest_${{ matrix.ros_distro }}
       options: --user root
 
     steps:
