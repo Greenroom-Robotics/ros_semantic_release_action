@@ -18,21 +18,6 @@ runs:
     - name: Setup Node.js
       uses: actions/setup-node@v2
 
-    # - name: Load cached poetry
-    #   id: cached-poetry-dependencies
-    #   uses: actions/cache@v2
-    #   with:
-    #     path: |
-    #       ~/.cache/pypoetry
-    #     key: poetry-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
-
-    - name: Install poetry
-      shell: bash
-      run: |
-        pip install poetry
-        echo "$HOME/.local/bin" >> $GITHUB_PATH
-        poetry config virtualenvs.create false
-
     - name: Copy some assets into the repo root
       shell: bash
       run: cp ${GITHUB_ACTION_PATH}/package.json ${GITHUB_ACTION_PATH}/yarn.lock .
@@ -41,32 +26,28 @@ runs:
       shell: bash
       run: yarn install --frozen-lockfile
 
-    # - name: Poetry Install
-    #   shell: bash
-    #   if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-    #   run: python3 ${GITHUB_ACTION_PATH}/scripts/poetry-install.py
-
     - name: Chown
       shell: bash
       run: chown -R $(whoami) .
 
-    - name: ROS Setup
+    - name: Install platform_cli
+      shell: bash
+      run: |
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+        pip install https://github.com/Greenroom-Robotics/platform_cli/archive/refs/heads/feature/pkg-cmds.zip
+
+    - name: Setup rosdep and apt lists
       shell: bash
       env:
-        ROSDISTRO_OVERLAY_INDEX_URL: https://raw.githubusercontent.com/Greenroom-Robotics/rosdistro/main/overlay.yaml
-        ROS2_DISTRO: ${{ inputs.ros2_distro }}
-        GHCR_PAT: ${{ inputs.token }}
         API_TOKEN_GITHUB: ${{ inputs.token }}
-        PACKAGES_DIRECTORY: packages
-      run: bash ${GITHUB_ACTION_PATH}/scripts/ros-setup.sh
+      run: platform pkg setup
 
-    - name: Colcon build
+    - name: Install rosdep deps
       shell: bash
       env:
-        ROS2_DISTRO: ${{ inputs.ros2_distro }}
-        PACKAGES_DIRECTORY: packages
-      run: bash ${GITHUB_ACTION_PATH}/scripts/ros-build.sh
-
+        GHCR_PAT: ${{ inputs.token }}
+      run: platform pkg install-deps
+    
     - name: Generate package.jsons
       shell: bash
       env:
@@ -76,14 +57,6 @@ runs:
     - name: Semantic Release
       shell: bash
       env:
-        DEB_OUTPUT_DIRECTORY: "./deb-output"
-        GITHUB_USER: ${{ github.actor }}
-        GITHUB_TOKEN: ${{ inputs.token }}
         API_TOKEN_GITHUB: ${{ inputs.token }}
         ROS2_DISTRO: ${{ inputs.ros2_distro }}
-        PUBLISH_SOURCE_FILE: "./deb-output/*.deb"
-        PUBLISH_DESTINATION_REPO: "Greenroom-Robotics/packages"
-        PUBLISH_DESTINATION_FOLDER: "debian"
-        PUBLISH_USER_NAME: "ci@greenroomrobotics.com"
-        PUBLISH_USER_EMAIL: "Github CI"
       run: yarn release

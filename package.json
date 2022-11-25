@@ -53,8 +53,8 @@
       [
         "@semantic-release/exec",
         {
-          "prepareCmd": "/__w/_actions/Greenroom-Robotics/ros_semantic_release_action/main/scripts/ros-build-debian.sh ${nextRelease.version}",
-          "publishCmd": "/__w/_actions/Greenroom-Robotics/ros_semantic_release_action/main/scripts/ros-publish-debian.sh"
+          "prepareCmd": "platform pkg build --version ${nextRelease.version}",
+          "publishCmd": "platform pkg apt-clone && platform pkg apt-add && platform pkg apt-push"
         }
       ],
       [
@@ -62,7 +62,7 @@
         {
           "assets": [
             {
-              "path": "./deb-output/*.deb"
+              "path": "**/*.deb"
             }
           ],
           "successComment": false
