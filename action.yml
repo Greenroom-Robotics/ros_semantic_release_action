@@ -36,5 +36,6 @@ runs:
       env:
         API_TOKEN_GITHUB: ${{ inputs.token }}
         GITHUB_TOKEN: ${{ inputs.token }}
+        GITHUB_USER: ${{ github.actor }}
       shell: bash
       run: platform release create
