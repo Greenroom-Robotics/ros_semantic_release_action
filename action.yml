@@ -25,12 +25,15 @@ runs:
         python-version: '3.10'
 
     - name: Install platform_cli
+      shell: bash
       run: pip install git+https://github.com/Greenroom-Robotics/platform_cli.git@main
 
     - name: Platform Release Setup
+      shell: bash
       run: platform release setup
 
     - name: Platform Release Create
       env:
         API_TOKEN_GITHUB: ${{ inputs.token }}
+      shell: bash
       run: platform release create
