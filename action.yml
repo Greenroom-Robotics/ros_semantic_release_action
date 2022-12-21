@@ -8,6 +8,9 @@ inputs:
   token:
     description: "The Github token with access to the packages repo and release api"
     required: true
+  changelog:
+    description: "Should we generate a changelog? You should disable this for submodules."
+    default: "true"
   ros2_distro:
     description: "The version of ros2 to build for (eg galactic or humble). The version of ros_builder must be correct!"
     default: "galactic"
@@ -38,4 +41,4 @@ runs:
         GITHUB_TOKEN: ${{ inputs.token }}
         GITHUB_USER: ${{ github.actor }}
       shell: bash
-      run: platform release create
+      run: platform release create --changelog ${{ inputs.changelog }}
