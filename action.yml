@@ -39,7 +39,7 @@ runs:
 
     - name: Platform Release Setup
       shell: bash
-      run: platform release setup
+      run: platform release setup --package ${{ inputs.package }}
 
     - name: Platform Release Create
       env:
