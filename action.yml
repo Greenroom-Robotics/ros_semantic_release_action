@@ -19,7 +19,7 @@ inputs:
     default: ""
   ros2_distro:
     description: "The version of ros2 to build for (eg galactic or humble). The version of ros_builder must be correct!"
-    default: "galactic"
+    default: "humble"
     deprecated: true
 
 runs:
