@@ -51,4 +51,4 @@ runs:
         platform release create \
         --changelog ${{ inputs.changelog }} \
         --public ${{ inputs.public }} \
-        --package ${{ inputs.package }}
+        --package=${{ inputs.package }}
