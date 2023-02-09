@@ -17,6 +17,9 @@ inputs:
   package:
     description: "The package to release. If not set, all packages in the repo will be released."
     default: ""
+  arch:
+    description: "The architecture to build for (eg amd64 or arm64)."
+    default: "amd64"
   ros2_distro:
     description: "The version of ros2 to build for (eg galactic or humble). The version of ros_builder must be correct!"
     default: "humble"
@@ -49,6 +52,7 @@ runs:
       shell: bash
       run: |
         platform release create \
-        --changelog ${{ inputs.changelog }} \
-        --public ${{ inputs.public }} \
-        --package=${{ inputs.package }}
+        --changelog=${{ inputs.changelog }} \
+        --public=${{ inputs.public }} \
+        --package=${{ inputs.package }} \
+        --arch=${{ inputs.arch }}
