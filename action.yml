@@ -9,7 +9,10 @@ inputs:
     description: "The Github token with access to the packages repo and release api"
     required: true
   changelog:
-    description: "Should we generate a changelog? You should disable this for submodules."
+    description: "Should we generate and commit back a changelog?"
+    default: "true"
+  github_release:
+    description: "Should we create a github release?"
     default: "true"
   public:
     description: "Should the packages be public?"
@@ -17,6 +20,9 @@ inputs:
   package:
     description: "The package to release. If not set, all packages in the repo will be released."
     default: ""
+  arch:
+    description: "The architecture to build for (eg amd64 or arm64)."
+    default: "amd64"
   ros2_distro:
     description: "The version of ros2 to build for (eg galactic or humble). The version of ros_builder must be correct!"
     default: "humble"
@@ -29,9 +35,14 @@ runs:
       uses: actions/setup-node@v2
 
     - name: Setup Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.10'
+      shell: bash
+      run: |
+        # We are not using the @actions/setup-python action because it does not work on arm64
+        sudo apt-get install -y software-properties-common
+        sudo add-apt-repository ppa:deadsnakes/ppa
+        sudo apt-get update
+        sudo apt-get install -y python3 python3-pip
+        curl -sSL https://install.python-poetry.org | python3
 
     - name: Install platform_cli
       shell: bash
@@ -49,6 +60,8 @@ runs:
       shell: bash
       run: |
         platform release create \
-        --changelog ${{ inputs.changelog }} \
-        --public ${{ inputs.public }} \
-        --package=${{ inputs.package }}
+        --changelog=${{ inputs.changelog }} \
+        --public=${{ inputs.public }} \
+        --package=${{ inputs.package }} \
+        --arch=${{ inputs.arch }} \
+        --github-release=${{ inputs.github_release }}
