@@ -9,7 +9,10 @@ inputs:
     description: "The Github token with access to the packages repo and release api"
     required: true
   changelog:
-    description: "Should we generate a changelog? You should disable this for submodules."
+    description: "Should we generate and commit back a changelog?"
+    default: "true"
+  github_release:
+    description: "Should we create a github release?"
     default: "true"
   public:
     description: "Should the packages be public?"
@@ -34,6 +37,7 @@ runs:
     - name: Setup Python
       shell: bash
       run: |
+        # We are not using the @actions/setup-python action because it does not work on arm64
         sudo apt-get install -y software-properties-common
         sudo add-apt-repository ppa:deadsnakes/ppa
         sudo apt-get update
@@ -59,4 +63,5 @@ runs:
         --changelog=${{ inputs.changelog }} \
         --public=${{ inputs.public }} \
         --package=${{ inputs.package }} \
-        --arch=${{ inputs.arch }}
+        --arch=${{ inputs.arch }} \
+        --github-release=${{ inputs.github_release }}
