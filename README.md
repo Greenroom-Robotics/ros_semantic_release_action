@@ -78,7 +78,8 @@ jobs:
 
   release_arm:
     name: Release ARM
-    runs-on: buildjet-2vcpu-ubuntu-2204-arm
+    runs-on: buildjet-2vcpu-ubuntu-2204-arm   # this has 3GB of RAM
+    # runs-on: buildjet-4vcpu-ubuntu-2204-arm # this has 6GB of RAM - use this if you have lots to build
 
     steps:
       - name: Checkout this repository
