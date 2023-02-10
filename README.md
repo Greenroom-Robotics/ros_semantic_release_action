@@ -43,7 +43,7 @@ jobs:
 
 ### Tag & Release using native runners:
 
-By default the action will build for both ARM and x86. If you want to build for only one architecture, you can use the `arch` input.
+By default the action will build for both ARM and x86. We want to only build a single arch on each runner which is why we use 2 jobs with a different `--arch` flag. Note, we also disable changelog generation and GitHub release creation for the ARM job as this would cause a duplicate release and changelog pushes which will fail. Note, the `arm` `.deb` will not be published to the github release as a result (but will be published to the PPA).
 
 ```yml
 name: Tag & Release
@@ -71,6 +71,7 @@ jobs:
         uses: Greenroom-Robotics/ros_semantic_release_action@main
         with:
           token: ${{ secrets.API_TOKEN_GITHUB }}
+          package: ${{ github.event.inputs.package }}
           arch: amd64
           public: false
           changelog: true
@@ -87,8 +88,9 @@ jobs:
         uses: Greenroom-Robotics/ros_semantic_release_action@main
         with:
           token: ${{ secrets.API_TOKEN_GITHUB }}
+          package: ${{ github.event.inputs.package }}
           arch: arm64
           public: false
-          changelog: false # Otherwise, the changelog will be generated twice and the release will fail 
-          github_release: false # Otherwise, the release will be created twice and the release will fail
+          changelog: false
+          github_release: false
 ```
