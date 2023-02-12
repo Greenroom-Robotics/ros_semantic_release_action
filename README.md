@@ -89,6 +89,5 @@ jobs:
           token: ${{ secrets.API_TOKEN_GITHUB }}
           arch: arm64
           public: false
-          changelog: false # Otherwise, the changelog will be generated twice and the release will fail 
-          github_release: false # Otherwise, the release will be created twice and the release will fail
+          changelog: false # Otherwise, the changelog will be generated twice
 ```
