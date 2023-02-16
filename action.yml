@@ -31,6 +31,9 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Collect Workflow Telemetry
+      uses: Greenroom-Robotics/workflow-telemetry-action@main
+
     - name: Setup Node.js
       uses: actions/setup-node@v2
 
