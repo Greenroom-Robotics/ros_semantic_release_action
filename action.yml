@@ -47,6 +47,14 @@ runs:
         sudo apt-get install -y python3 python3-pip
         curl -sSL https://install.python-poetry.org | python3
 
+    - name: Update git to latest version
+      shell: bash
+      run: |
+        echo "Current git version:" $(git --version)
+        sudo apt-add-repository ppa:git-core/ppa
+        sudo apt-get update
+        sudo apt-get install -y git
+
     - name: Install platform_cli
       shell: bash
       run: pip install git+https://github.com/Greenroom-Robotics/platform_cli.git@main
