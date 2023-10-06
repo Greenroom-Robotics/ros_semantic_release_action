@@ -18,8 +18,11 @@ inputs:
     description: "Should the packages be public?"
     default: "false"
   package:
-    description: "The package to release. If not set, all packages in the repo will be released."
+    description: "The package to release. If not set, all packages in the 'package_dir' will be released."
     default: ""
+  package_dir:
+    description: "The directory to release packages from. If not set, the root of the repo will be used."
+    default: "./"
   arch:
     description: "The architecture to build for (eg amd64 or arm64)."
     default: "amd64"
@@ -53,7 +56,10 @@ runs:
 
     - name: Platform Release Setup
       shell: bash
-      run: platform release setup --package=${{ inputs.package }}
+      run: |
+        platform release setup \
+        --package=${{ inputs.package }} \
+        --package-dir={{ input.package_dir }}
 
     - name: Platform Release Create
       env:
@@ -66,5 +72,6 @@ runs:
         --changelog=${{ inputs.changelog }} \
         --public=${{ inputs.public }} \
         --package=${{ inputs.package }} \
+        --package-dir={{ input.package_dir }} \
         --arch=${{ inputs.arch }} \
         --github-release=${{ inputs.github_release }}
