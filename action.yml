@@ -59,7 +59,7 @@ runs:
       run: |
         platform release setup \
         --package=${{ inputs.package }} \
-        --package-dir=${{ input.package_dir }}
+        --package-dir=${{ inputs.package_dir }}
 
     - name: Platform Release Create
       env:
@@ -72,6 +72,6 @@ runs:
         --changelog=${{ inputs.changelog }} \
         --public=${{ inputs.public }} \
         --package=${{ inputs.package }} \
-        --package-dir=${{ input.package_dir }} \
+        --package-dir=${{ inputs.package_dir }} \
         --arch=${{ inputs.arch }} \
         --github-release=${{ inputs.github_release }}
