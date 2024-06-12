@@ -26,10 +26,9 @@ inputs:
   arch:
     description: "The architecture to build for (eg amd64 or arm64)."
     default: "amd64"
-  ros2_distro:
-    description: "The version of ros2 to build for (eg galactic or humble). The version of ros_builder must be correct!"
+  ros_distro:
+    description: "The version of ros2 to build for (eg galactic or humble). This will be passed into the Dockerfile as $ROS_DISTRO."
     default: "iron"
-    deprecated: true
 
 runs:
   using: "composite"
@@ -74,4 +73,5 @@ runs:
         --package=${{ inputs.package }} \
         --package-dir=${{ inputs.package_dir }} \
         --arch=${{ inputs.arch }} \
+        --ros-distro=${{ inputs.ros_distro }} \
         --github-release=${{ inputs.github_release }}
