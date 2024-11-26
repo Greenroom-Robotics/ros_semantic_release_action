@@ -14,6 +14,9 @@ inputs:
   github_release:
     description: "Should we create a github release?"
     default: "true"
+  no_tag:
+    description: "Should we skip creating a git tag?"
+    default: "false"
   public:
     description: "Should the packages be public?"
     default: "false"
@@ -52,7 +55,7 @@ runs:
 
     - name: Install platform_cli
       shell: bash
-      run: pip install git+https://github.com/Greenroom-Robotics/platform_cli.git@main
+      run: pip install git+https://github.com/Greenroom-Robotics/platform_cli.git@feature/tag-post-build
 
     - name: Platform Release Setup
       shell: bash
@@ -75,4 +78,5 @@ runs:
         --package-dir=${{ inputs.package_dir }} \
         --arch=${{ inputs.arch }} \
         --ros-distro=${{ inputs.ros_distro }} \
-        --github-release=${{ inputs.github_release }}
+        --github-release=${{ inputs.github_release }} \
+        --no-tag=${{ inputs.no_tag }}
