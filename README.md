@@ -31,7 +31,7 @@ jobs:
 
     steps:
       - name: Checkout this repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Semantic release
         uses: Greenroom-Robotics/ros_semantic_release_action@main
@@ -65,7 +65,7 @@ jobs:
 
     steps:
       - name: Checkout this repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Semantic release
         uses: Greenroom-Robotics/ros_semantic_release_action@main
@@ -81,7 +81,7 @@ jobs:
 
     steps:
       - name: Checkout this repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Semantic release
         uses: Greenroom-Robotics/ros_semantic_release_action@main
