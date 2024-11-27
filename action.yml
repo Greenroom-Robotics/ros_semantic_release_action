@@ -67,6 +67,12 @@ runs:
         --package=${{ inputs.package }} \
         --package-dir=${{ inputs.package_dir }}
 
+    - uses: actions/download-artifact@v4
+      if: ${{ inputs.skip_build == 'true' }}
+      with:
+        pattern: build-*
+        merge-multiple: true
+
     - name: Platform Release Create
       env:
         API_TOKEN_GITHUB: ${{ inputs.token }}
@@ -84,3 +90,11 @@ runs:
         --github-release=${{ inputs.github_release }} \
         --skip-tag=${{ inputs.skip_tag }} \
         --skip-build=${{ inputs.skip_build }}
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: build-${{ inputs.arch }}-${{ inputs.ros_distro }}
+        path: |
+          packages/*/debs/*.deb
+          packages/*/debs/*.ddeb
+        compression-level: 0 # no compression
