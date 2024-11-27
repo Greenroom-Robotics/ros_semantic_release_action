@@ -14,7 +14,7 @@ inputs:
   github_release:
     description: "Should we create a github release?"
     default: "true"
-  no_tag:
+  skip_tag:
     description: "Should we skip creating a git tag?"
     default: "false"
   public:
@@ -79,4 +79,4 @@ runs:
         --arch=${{ inputs.arch }} \
         --ros-distro=${{ inputs.ros_distro }} \
         --github-release=${{ inputs.github_release }} \
-        --no-tag=${{ inputs.no_tag }}
+        --skip-tag=${{ inputs.skip_tag }}
