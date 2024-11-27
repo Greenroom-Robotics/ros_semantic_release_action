@@ -71,6 +71,7 @@ runs:
       if: ${{ inputs.skip_build == 'true' }}
       with:
         pattern: build-*
+        path: packages
         merge-multiple: true
 
     - name: Platform Release Create
@@ -92,6 +93,7 @@ runs:
         --skip-build=${{ inputs.skip_build }}
 
     - uses: actions/upload-artifact@v4
+      if: ${{ inputs.skip_build == 'false' }}
       with:
         name: build-${{ inputs.arch }}-${{ inputs.ros_distro }}
         path: |
