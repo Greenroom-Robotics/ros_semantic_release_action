@@ -43,7 +43,9 @@ runs:
       uses: Greenroom-Robotics/workflow-telemetry-action@main
 
     - name: Setup Node.js
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
 
     - name: Setup Python
       shell: bash
@@ -71,7 +73,7 @@ runs:
       if: ${{ inputs.skip_build == 'true' }}
       with:
         pattern: build-*
-        path: packages
+        path: ${{ inputs.package_dir }}
         merge-multiple: true
 
     - name: Platform Release Create
@@ -97,6 +99,6 @@ runs:
       with:
         name: build-${{ inputs.arch }}-${{ inputs.ros_distro }}
         path: |
-          packages/*/debs/*.deb
-          packages/*/debs/*.ddeb
+          ${{ inputs.package_dir }}/*/debs/*.deb
+          ${{ inputs.package_dir }}/*/debs/*.ddeb
         compression-level: 0 # no compression
