@@ -14,6 +14,12 @@ inputs:
   github_release:
     description: "Should we create a github release?"
     default: "true"
+  skip_tag:
+    description: "Should we skip creating a git tag?"
+    default: "false"
+  skip_build:
+    description: "Should we skip building the packages?"
+    default: "false"
   public:
     description: "Should the packages be public?"
     default: "false"
@@ -37,7 +43,9 @@ runs:
       uses: Greenroom-Robotics/workflow-telemetry-action@main
 
     - name: Setup Node.js
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
 
     - name: Setup Python
       shell: bash
@@ -52,7 +60,7 @@ runs:
 
     - name: Install platform_cli
       shell: bash
-      run: pip install git+https://github.com/Greenroom-Robotics/platform_cli.git@main
+      run: pip install git+https://github.com/Greenroom-Robotics/platform_cli.git@feature/tag-post-build
 
     - name: Platform Release Setup
       shell: bash
@@ -60,6 +68,13 @@ runs:
         platform release setup \
         --package=${{ inputs.package }} \
         --package-dir=${{ inputs.package_dir }}
+
+    - uses: actions/download-artifact@v4
+      if: ${{ inputs.skip_build == 'true' }}
+      with:
+        pattern: build-*
+        path: ${{ inputs.package_dir }}
+        merge-multiple: true
 
     - name: Platform Release Create
       env:
@@ -75,4 +90,15 @@ runs:
         --package-dir=${{ inputs.package_dir }} \
         --arch=${{ inputs.arch }} \
         --ros-distro=${{ inputs.ros_distro }} \
-        --github-release=${{ inputs.github_release }}
+        --github-release=${{ inputs.github_release }} \
+        --skip-tag=${{ inputs.skip_tag }} \
+        --skip-build=${{ inputs.skip_build }}
+
+    - uses: actions/upload-artifact@v4
+      if: ${{ inputs.skip_build == 'false' }}
+      with:
+        name: build-${{ inputs.arch }}-${{ inputs.ros_distro }}
+        path: |
+          ${{ inputs.package_dir }}/*/debs/*.deb
+          ${{ inputs.package_dir }}/*/debs/*.ddeb
+        compression-level: 0 # no compression
