@@ -60,7 +60,7 @@ runs:
 
     - name: Install platform_cli
       shell: bash
-      run: pip install git+https://github.com/Greenroom-Robotics/platform_cli.git@feature/tag-post-build
+      run: pip install git+https://github.com/Greenroom-Robotics/platform_cli.git@main
 
     - name: Platform Release Setup
       shell: bash
