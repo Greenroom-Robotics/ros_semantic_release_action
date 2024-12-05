@@ -99,6 +99,8 @@ runs:
       with:
         name: build-${{ inputs.arch }}-${{ inputs.ros_distro }}
         path: |
+          ${{ inputs.package_dir }}/debs/*.deb
+          ${{ inputs.package_dir }}/debs/*.ddeb
           ${{ inputs.package_dir }}/*/debs/*.deb
           ${{ inputs.package_dir }}/*/debs/*.ddeb
         compression-level: 0 # no compression
