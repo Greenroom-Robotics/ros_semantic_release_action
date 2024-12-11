@@ -35,6 +35,9 @@ inputs:
   ros_distro:
     description: "The version of ros2 to build for (eg galactic or humble). This will be passed into the Dockerfile as $ROS_DISTRO."
     default: "iron"
+  cli_branch:
+    description: "The branch of platform_cli to use"
+    default: "main"
 
 runs:
   using: "composite"
@@ -60,7 +63,7 @@ runs:
 
     - name: Install platform_cli
       shell: bash
-      run: pip install git+https://github.com/Greenroom-Robotics/platform_cli.git@main
+      run: pip install git+https://github.com/Greenroom-Robotics/platform_cli.git@${{ inputs.cli_branch }}
 
     - name: Platform Release Setup
       shell: bash
