@@ -35,6 +35,9 @@ inputs:
   ros_distro:
     description: "The version of ros2 to build for (eg galactic or humble). This will be passed into the Dockerfile as $ROS_DISTRO."
     default: "iron"
+  release_branches:
+    description: "The branches to release from. Comma separated list."
+    default: "main,master,alpha"
   cli_branch:
     description: "The branch of platform_cli to use"
     default: "main"
@@ -96,6 +99,7 @@ runs:
         --github-release=${{ inputs.github_release }} \
         --skip-tag=${{ inputs.skip_tag }} \
         --skip-build=${{ inputs.skip_build }}
+        --branches=${{ inputs.release_branches }}
 
     - uses: actions/upload-artifact@v4
       if: ${{ inputs.skip_build == 'false' }}
