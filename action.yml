@@ -98,7 +98,7 @@ runs:
         --ros-distro=${{ inputs.ros_distro }} \
         --github-release=${{ inputs.github_release }} \
         --skip-tag=${{ inputs.skip_tag }} \
-        --skip-build=${{ inputs.skip_build }}
+        --skip-build=${{ inputs.skip_build }} \
         --branches=${{ inputs.release_branches }}
 
     - uses: actions/upload-artifact@v4
