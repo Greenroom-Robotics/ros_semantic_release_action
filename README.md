@@ -61,7 +61,7 @@ on:
 jobs:
   release_amd:
     name: Release AMD
-    runs-on: buildjet-2vcpu-ubuntu-2204
+    runs-on: 2vcpu-ubuntu-2404
 
     steps:
       - name: Checkout this repository
@@ -77,7 +77,7 @@ jobs:
 
   release_arm:
     name: Release ARM
-    runs-on: buildjet-2vcpu-ubuntu-2204-arm
+    runs-on: 2vcpu-ubuntu-2404-arm
 
     steps:
       - name: Checkout this repository
