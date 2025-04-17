@@ -60,18 +60,26 @@ runs:
 
     - name: Setup Poetry
       shell: bash
-      run: sudo pip install poetry-plugin-export
+      run: |
+        echo "::group::Install Poetry Plugin"
+        sudo pip install poetry-plugin-export
+        echo "::endgroup::"
 
     - name: Install platform_cli
       shell: bash
-      run: pip install git+https://github.com/Greenroom-Robotics/platform_cli.git@${{ inputs.cli_branch }}
+      run: |
+        echo "::group::Install platform_cli"
+        pip install git+https://github.com/Greenroom-Robotics/platform_cli.git@${{ inputs.cli_branch }}
+        echo "::endgroup::"
 
     - name: Setup Release Environment
       shell: bash
       run: |
+        echo "::group::Setup Release Environment"
         platform release setup \
         --package=${{ inputs.package }} \
         --package-dir=${{ inputs.package_dir }}
+        echo "::endgroup::"
 
     - name: Download Artifacts
       uses: actions/download-artifact@v4
