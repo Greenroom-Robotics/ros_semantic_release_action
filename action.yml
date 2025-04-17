@@ -54,35 +54,34 @@ runs:
         node-version: 20
 
     - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12' 
+
+    - name: Setup Poetry
       shell: bash
-      run: |
-        # We are not using the @actions/setup-python action because it does not work on arm64
-        sudo apt-get install -y software-properties-common
-        sudo add-apt-repository ppa:deadsnakes/ppa
-        sudo apt-get update
-        sudo apt-get install -y python3 python3-pip
-        curl -sSL https://install.python-poetry.org | python3
-        sudo pip install poetry-plugin-export
+      run: sudo pip install poetry-plugin-export
 
     - name: Install platform_cli
       shell: bash
       run: pip install git+https://github.com/Greenroom-Robotics/platform_cli.git@${{ inputs.cli_branch }}
 
-    - name: Platform Release Setup
+    - name: Setup Release Environment
       shell: bash
       run: |
         platform release setup \
         --package=${{ inputs.package }} \
         --package-dir=${{ inputs.package_dir }}
 
-    - uses: actions/download-artifact@v4
+    - name: Download Artifacts
+      uses: actions/download-artifact@v4
       if: ${{ inputs.skip_build == 'true' }}
       with:
         pattern: build-*
         path: ${{ inputs.package_dir }}
         merge-multiple: true
 
-    - name: Platform Release Create
+    - name: Create Release
       env:
         API_TOKEN_GITHUB: ${{ inputs.token }}
         GITHUB_TOKEN: ${{ inputs.token }}
@@ -101,7 +100,8 @@ runs:
         --skip-build=${{ inputs.skip_build }} \
         --branches=${{ inputs.release_branches }}
 
-    - uses: actions/upload-artifact@v4
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
       if: ${{ inputs.skip_build == 'false' }}
       with:
         name: build-${{ inputs.arch }}-${{ inputs.ros_distro }}
