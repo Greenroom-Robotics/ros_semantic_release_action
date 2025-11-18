@@ -32,6 +32,9 @@ inputs:
   arch:
     description: "The architecture to build for (eg amd64 or arm64)."
     default: "amd64"
+  gpu:
+    description: "This will be passed into the Dockerfile as $GPU to enable GPU support."
+    default: "false"
   ros_distro:
     description: "The version of ros2 to build for (eg galactic or humble). This will be passed into the Dockerfile as $ROS_DISTRO."
     default: "iron"
@@ -94,6 +97,7 @@ runs:
         API_TOKEN_GITHUB: ${{ inputs.token }}
         GITHUB_TOKEN: ${{ inputs.token }}
         GITHUB_USER: ${{ github.actor }}
+        GPU: ${{ inputs.gpu }}
       shell: bash
       run: |
         platform release create \
