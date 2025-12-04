@@ -44,6 +44,9 @@ inputs:
   cli_branch:
     description: "The branch of platform_cli to use"
     default: "main"
+  secrets:
+    description: "JSON string of secrets to pass to docker build (e.g. '{\"API_TOKEN_GITHUB\": \"./.secrets/github_token\", \"apt_conf\": \"./.secrets/apt.conf\"}')"
+    default: "{}"
 
 runs:
   using: "composite"
@@ -110,7 +113,8 @@ runs:
         --github-release=${{ inputs.github_release }} \
         --skip-tag=${{ inputs.skip_tag }} \
         --skip-build=${{ inputs.skip_build }} \
-        --branches=${{ inputs.release_branches }}
+        --branches=${{ inputs.release_branches }} \
+        --secrets='${{ inputs.secrets }}'
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
