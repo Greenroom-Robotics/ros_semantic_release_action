@@ -64,6 +64,9 @@ runs:
       with:
         python-version: '3.12' 
 
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
     - name: Setup Poetry
       shell: bash
       run: |
