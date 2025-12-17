@@ -48,6 +48,11 @@ inputs:
     description: "JSON string of secrets to pass to docker build (e.g. '{\"API_TOKEN_GITHUB\": \"./.secrets/github_token\", \"apt_conf\": \"./.secrets/apt.conf\"}')"
     default: "{}"
 
+outputs:
+  new_release_published:
+    description: "Whether a new release was published (debs were created)"
+    value: ${{ steps.check-release.outputs.new_release_published }}
+
 runs:
   using: "composite"
   steps:
@@ -130,3 +135,17 @@ runs:
           ${{ inputs.package_dir }}/*/debs/*.deb
           ${{ inputs.package_dir }}/*/debs/*.ddeb
         compression-level: 0 # no compression
+
+    - name: Check release status
+      id: check-release
+      shell: bash
+      run: |
+        # Check if any debs or ddebs were created
+        if compgen -G "${{ inputs.package_dir }}/debs/*.deb" > /dev/null || \
+           compgen -G "${{ inputs.package_dir }}/debs/*.ddeb" > /dev/null || \
+           compgen -G "${{ inputs.package_dir }}/*/debs/*.deb" > /dev/null || \
+           compgen -G "${{ inputs.package_dir }}/*/debs/*.ddeb" > /dev/null; then
+          echo "new_release_published=true" >> $GITHUB_OUTPUT
+        else
+          echo "new_release_published=false" >> $GITHUB_OUTPUT
+        fi
