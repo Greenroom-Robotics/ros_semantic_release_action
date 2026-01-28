@@ -10,7 +10,7 @@ on:
       package_dir:
         description: 'Directory containing packages'
         type: string
-        default: 'packages'
+        default: './'
       # Boolean distro inputs
       build_kilted:
         description: 'Build for Kilted'
