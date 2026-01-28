@@ -1,0 +1,145 @@
+name: ROS Semantic Release
+
+on:
+  workflow_call:
+    inputs:
+      package:
+        description: 'Package to release (empty = all)'
+        type: string
+        default: ''
+      package_dir:
+        description: 'Directory containing packages'
+        type: string
+        default: 'packages'
+      # Boolean distro inputs
+      build_kilted:
+        description: 'Build for Kilted'
+        type: boolean
+        default: true
+      build_jazzy:
+        description: 'Build for Jazzy'
+        type: boolean
+        default: false
+      build_iron:
+        description: 'Build for Iron'
+        type: boolean
+        default: true
+      # Architecture options
+      build_amd64:
+        description: 'Build for amd64'
+        type: boolean
+        default: true
+      build_arm64:
+        description: 'Build for arm64'
+        type: boolean
+        default: true
+      # Other options
+      public:
+        description: 'Publish as public packages'
+        type: boolean
+        default: false
+      changelog:
+        description: 'Generate changelog'
+        type: boolean
+        default: false
+      gpu:
+        description: 'Enable GPU support'
+        type: boolean
+        default: false
+      runner_amd64:
+        description: 'Runner for amd64 builds'
+        type: string
+        default: '4vcpu-ubuntu-2404'
+      runner_arm64:
+        description: 'Runner for arm64 builds'
+        type: string
+        default: '4vcpu-ubuntu-2404-arm'
+      runner_release:
+        description: 'Runner for release job'
+        type: string
+        default: '2vcpu-ubuntu-2404'
+    secrets:
+      token:
+        required: true
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      distros: ${{ steps.set-matrix.outputs.distros }}
+      architectures: ${{ steps.set-matrix.outputs.architectures }}
+    steps:
+      - id: set-matrix
+        run: |
+          # Build distros array from boolean inputs
+          distros=()
+          [ "${{ inputs.build_iron }}" == "true" ] && distros+=("iron")
+          [ "${{ inputs.build_jazzy }}" == "true" ] && distros+=("jazzy")
+          [ "${{ inputs.build_kilted }}" == "true" ] && distros+=("kilted")
+
+          if [ ${#distros[@]} -eq 0 ]; then
+            echo "::error::No distros selected"
+            exit 1
+          fi
+
+          # Build architectures array
+          archs=()
+          [ "${{ inputs.build_amd64 }}" == "true" ] && archs+=("amd64")
+          [ "${{ inputs.build_arm64 }}" == "true" ] && archs+=("arm64")
+
+          if [ ${#archs[@]} -eq 0 ]; then
+            echo "::error::No architectures selected"
+            exit 1
+          fi
+
+          echo "distros=$(jq -cn '$ARGS.positional' --args "${distros[@]}")" >> $GITHUB_OUTPUT
+          echo "architectures=$(jq -cn '$ARGS.positional' --args "${archs[@]}")" >> $GITHUB_OUTPUT
+
+  build:
+    needs: setup
+    strategy:
+      fail-fast: true
+      matrix:
+        distro: ${{ fromJson(needs.setup.outputs.distros) }}
+        arch: ${{ fromJson(needs.setup.outputs.architectures) }}
+
+    name: Build - ${{ matrix.arch }} - ${{ matrix.distro }}
+    runs-on: ${{ matrix.arch == 'arm64' && inputs.runner_arm64 || inputs.runner_amd64 }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build
+        uses: Greenroom-Robotics/ros_semantic_release_action@main
+        with:
+          token: ${{ secrets.token }}
+          package_dir: ${{ inputs.package_dir }}
+          package: ${{ inputs.package }}
+          arch: ${{ matrix.arch }}
+          ros_distro: ${{ matrix.distro }}
+          github_release: false
+          public: ${{ inputs.public }}
+          changelog: false
+          skip_build: false
+          skip_tag: true
+          gpu: ${{ inputs.gpu }}
+
+  release:
+    name: Create Release
+    runs-on: ${{ inputs.runner_release }}
+    needs: build
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Release
+        uses: Greenroom-Robotics/ros_semantic_release_action@main
+        with:
+          token: ${{ secrets.token }}
+          package_dir: ${{ inputs.package_dir }}
+          package: ${{ inputs.package }}
+          github_release: true
+          public: ${{ inputs.public }}
+          changelog: ${{ inputs.changelog }}
+          skip_build: true
+          skip_tag: false

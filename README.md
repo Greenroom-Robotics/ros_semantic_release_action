@@ -1,16 +1,12 @@
-# ROS Semantic Release action
+# ROS Semantic Release Action
 
-This action is used to build and release ROS packages with semantic versioning. It builds both ARM and x86 packages and publishes them to Greenroom's PPA.
+Build and release ROS packages with semantic versioning. Builds ARM and x86 packages and publishes to Greenroom's PPA.
 
-## Usage
+## Quick Start
 
-Add a `release.yml`
+Use the reusable workflow for the simplest setup. Create `.github/workflows/release.yml`:
 
-There are 2 ways to use this action:
-
-### Tag & Release using QEMU:
-
-```yml
+```yaml
 name: Tag & Release
 
 on:
@@ -18,76 +14,73 @@ on:
     inputs:
       package:
         type: choice
-        description: 'If not specified, all packages will be released.'
-        options:
-          - ""
-          - package1 # Update this with a list of ROS packages in your repository. "" Will release all packages.
-          - package2
+        options: ["", "package1", "package2"]
+      build_jazzy:
+        type: boolean
+        default: true
+      build_kilted:
+        type: boolean
+        default: true
 
 jobs:
   release:
-    name: Release
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout this repository
-        uses: actions/checkout@v4
-
-      - name: Semantic release
-        uses: Greenroom-Robotics/ros_semantic_release_action@main
-        with:
-          token: ${{ secrets.API_TOKEN_GITHUB }}
-          package: ${{ github.event.inputs.package }}
-          public: false # Set to true to publish to public PPA
+    uses: Greenroom-Robotics/ros_semantic_release_action/.github/workflows/release.yml@main
+    with:
+      package: ${{ github.event.inputs.package }}
+      build_jazzy: ${{ github.event.inputs.build_jazzy == 'true' }}
+      build_kilted: ${{ github.event.inputs.build_kilted == 'true' }}
+    secrets:
+      token: ${{ secrets.API_TOKEN_GITHUB }}
 ```
 
-### Tag & Release using native runners:
+This handles the full pipeline: setup, matrix builds across architectures/distros, and release creation.
 
-By default the action will build for both ARM and x86. If you want to build for only one architecture, you can use the `arch` input.
+### Workflow Inputs
 
-```yml
-name: Tag & Release
+| Input            | Type    | Default                   | Description                      |
+| ---------------- | ------- | ------------------------- | -------------------------------- |
+| `package`        | string  | `''`                      | Package to release (empty = all) |
+| `package_dir`    | string  | `'packages'`              | Directory containing packages    |
+| `build_kilted`   | boolean | `true`                    | Build for Kilted                 |
+| `build_jazzy`    | boolean | `false`                   | Build for Jazzy                  |
+| `build_iron`     | boolean | `true`                    | Build for Iron                   |
+| `build_amd64`    | boolean | `true`                    | Build for amd64                  |
+| `build_arm64`    | boolean | `true`                    | Build for arm64                  |
+| `public`         | boolean | `false`                   | Publish to public PPA            |
+| `changelog`      | boolean | `false`                   | Generate changelog               |
+| `gpu`            | boolean | `false`                   | Enable GPU support               |
+| `runner_amd64`   | string  | `'4vcpu-ubuntu-2404'`     | Runner for amd64 builds          |
+| `runner_arm64`   | string  | `'4vcpu-ubuntu-2404-arm'` | Runner for arm64 builds          |
+| `runner_release` | string  | `'2vcpu-ubuntu-2404'`     | Runner for release job           |
 
-on:
-  workflow_dispatch:
-    inputs:
-      package:
-        type: choice
-        description: 'If not specified, all packages will be released.'
-        options:
-          - ""
-          - package1 # Update this with a list of ROS packages in your repository. "" Will release all packages.
-          - package2
-jobs:
-  release_amd:
-    name: Release AMD
-    runs-on: 2vcpu-ubuntu-2404
+## Direct Action Usage
 
-    steps:
-      - name: Checkout this repository
-        uses: actions/checkout@v4
+For custom workflows, use the composite action directly. This is useful when you need QEMU emulation or custom build orchestration.
 
-      - name: Semantic release
-        uses: Greenroom-Robotics/ros_semantic_release_action@main
-        with:
-          token: ${{ secrets.API_TOKEN_GITHUB }}
-          arch: amd64
-          public: false
-          changelog: true
-
-  release_arm:
-    name: Release ARM
-    runs-on: 2vcpu-ubuntu-2404-arm
-
-    steps:
-      - name: Checkout this repository
-        uses: actions/checkout@v4
-
-      - name: Semantic release
-        uses: Greenroom-Robotics/ros_semantic_release_action@main
-        with:
-          token: ${{ secrets.API_TOKEN_GITHUB }}
-          arch: arm64
-          public: false
-          changelog: false # Otherwise, the changelog will be generated twice
+```yaml
+- uses: Greenroom-Robotics/ros_semantic_release_action@main
+  with:
+    token: ${{ secrets.API_TOKEN_GITHUB }}
+    package: my-package
+    arch: amd64
+    ros_distro: jazzy
 ```
+
+### Action Inputs
+
+| Input              | Default               | Description                                       |
+| ------------------ | --------------------- | ------------------------------------------------- |
+| `token`            | *required*            | GitHub token with packages and release API access |
+| `package`          | `''`                  | Package to release (empty = all in package_dir)   |
+| `package_dir`      | `'./'`                | Directory containing packages                     |
+| `arch`             | `'amd64'`             | Architecture: `amd64` or `arm64`                  |
+| `ros_distro`       | `'iron'`              | ROS 2 distro: `humble`, `iron`, `jazzy`, `kilted` |
+| `public`           | `'false'`             | Publish to public PPA                             |
+| `changelog`        | `'true'`              | Generate and commit changelog                     |
+| `github_release`   | `'true'`              | Create GitHub release                             |
+| `skip_tag`         | `'false'`             | Skip creating git tag                             |
+| `skip_build`       | `'false'`             | Skip build (download artifacts instead)           |
+| `gpu`              | `'false'`             | Enable GPU support in build                       |
+| `release_branches` | `'main,master,alpha'` | Branches to release from                          |
+| `cli_branch`       | `'main'`              | Branch of platform_cli to use                     |
+| `secrets`          | `'{}'`                | JSON secrets to pass to docker build              |
