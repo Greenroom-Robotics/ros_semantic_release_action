@@ -58,6 +58,10 @@ on:
         description: 'Runner for release job'
         type: string
         default: '2vcpu-ubuntu-2404'
+      release_branches:
+        description: 'Branches to release from (comma separated)'
+        type: string
+        default: 'main,master,alpha'
     secrets:
       token:
         required: true
@@ -123,6 +127,7 @@ jobs:
           skip_build: false
           skip_tag: true
           gpu: ${{ inputs.gpu }}
+          release_branches: ${{ inputs.release_branches }}
 
   release:
     name: Create Release
@@ -143,3 +148,4 @@ jobs:
           changelog: ${{ inputs.changelog }}
           skip_build: true
           skip_tag: false
+          release_branches: ${{ inputs.release_branches }}
