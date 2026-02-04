@@ -37,21 +37,31 @@ This handles the full pipeline: setup, matrix builds across architectures/distro
 
 ### Workflow Inputs
 
-| Input            | Type    | Default                   | Description                      |
-| ---------------- | ------- | ------------------------- | -------------------------------- |
-| `package`        | string  | `''`                      | Package to release (empty = all) |
-| `package_dir`    | string  | `'packages'`              | Directory containing packages    |
-| `build_kilted`   | boolean | `true`                    | Build for Kilted                 |
-| `build_jazzy`    | boolean | `false`                   | Build for Jazzy                  |
-| `build_iron`     | boolean | `true`                    | Build for Iron                   |
-| `build_amd64`    | boolean | `true`                    | Build for amd64                  |
-| `build_arm64`    | boolean | `true`                    | Build for arm64                  |
-| `public`         | boolean | `false`                   | Publish to public PPA            |
-| `changelog`      | boolean | `false`                   | Generate changelog               |
-| `gpu`            | boolean | `false`                   | Enable GPU support               |
-| `runner_amd64`   | string  | `'4vcpu-ubuntu-2404'`     | Runner for amd64 builds          |
-| `runner_arm64`   | string  | `'4vcpu-ubuntu-2404-arm'` | Runner for arm64 builds          |
-| `runner_release` | string  | `'2vcpu-ubuntu-2404'`     | Runner for release job           |
+| Input              | Type    | Default                   | Description                                |
+| ------------------ | ------- | ------------------------- | ------------------------------------------ |
+| `package`          | string  | `''`                      | Package to release (empty = all)           |
+| `package_dir`      | string  | `'packages'`              | Directory containing packages              |
+| `build_kilted`     | boolean | `true`                    | Build for Kilted                           |
+| `build_jazzy`      | boolean | `false`                   | Build for Jazzy                            |
+| `build_iron`       | boolean | `true`                    | Build for Iron                             |
+| `build_amd64`      | boolean | `true`                    | Build for amd64                            |
+| `build_arm64`      | boolean | `true`                    | Build for arm64                            |
+| `public`           | boolean | `false`                   | Publish to public PPA                      |
+| `changelog`        | boolean | `false`                   | Generate changelog                         |
+| `gpu`              | boolean | `false`                   | Enable GPU support                         |
+| `runner_amd64`     | string  | `'4vcpu-ubuntu-2404'`     | Runner for amd64 builds                    |
+| `runner_arm64`     | string  | `'4vcpu-ubuntu-2404-arm'` | Runner for arm64 builds                    |
+| `runner_release`   | string  | `'2vcpu-ubuntu-2404'`     | Runner for release job                     |
+| `release_branches` | string  | `'main,master,alpha'`     | Branches to release from (comma-separated) |
+| `ignore_packages`  | string  | `''`                      | Packages to ignore (see format below)      |
+
+#### `ignore_packages` format
+
+Comma-separated list of packages to exclude from builds by creating `COLCON_IGNORE` marker files:
+- `pkg_name` — ignore for all distros
+- `distro:pkg_name` — ignore only for specific distro (e.g., `iron:my_pkg`)
+
+Example: `ignore_packages: 'legacy_pkg, iron:iron_incompatible_pkg, jazzy:experimental_pkg'`
 
 ## Direct Action Usage
 
