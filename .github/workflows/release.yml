@@ -115,7 +115,10 @@ jobs:
     runs-on: ${{ matrix.arch == 'arm64' && inputs.runner_arm64 || inputs.runner_amd64 }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
+        with:
+          submodules: true
+      
 
       - name: Create COLCON_IGNORE for excluded packages
         if: inputs.ignore_packages != ''
