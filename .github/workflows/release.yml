@@ -178,7 +178,7 @@ jobs:
           done
 
       - name: Build
-        uses: Greenroom-Robotics/ros_semantic_release_action@tenzinplatter/release-as-app
+        uses: Greenroom-Robotics/ros_semantic_release_action@main
         with:
           token: ${{ secrets.token }}
           package_dir: ${{ inputs.package_dir }}
@@ -223,7 +223,7 @@ jobs:
           token: ${{ steps.app-token.outputs.token || secrets.token }}
 
       - name: Release
-        uses: Greenroom-Robotics/ros_semantic_release_action@tenzinplatter/release-as-app
+        uses: Greenroom-Robotics/ros_semantic_release_action@main
         with:
           token: ${{ steps.app-token.outputs.token || secrets.token }}
           # bot_slug defaults to the greenroom App bot in the action, so the
