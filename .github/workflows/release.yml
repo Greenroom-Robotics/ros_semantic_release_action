@@ -81,8 +81,8 @@ on:
     secrets:
       token:
         required: true
-      # Optional: provide the gremlin GitHub App's credentials to push the
-      # release commit/tag and create the release AS the App (its identity and
+      # Optional: provide a GitHub App's credentials to push the release
+      # commit/tag and create the release AS the App (its identity and
       # permissions) instead of with the PAT + semantic-release-bot. When
       # omitted, falls back to `token` and the default identity.
       gh_app_client_id:
