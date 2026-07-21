@@ -47,6 +47,9 @@ inputs:
   secrets:
     description: "JSON string of secrets to pass to docker build (e.g. '{\"API_TOKEN_GITHUB\": \"./.secrets/github_token\", \"apt_conf\": \"./.secrets/apt.conf\"}')"
     default: "{}"
+  bot_slug:
+    description: "GitHub App slug to attribute the release commit to. Defaults to the greenroom App bot; set empty to fall back to semantic-release's default identity."
+    default: "greenroom-gremlin"
 
 runs:
   using: "composite"
@@ -97,6 +100,26 @@ runs:
         pattern: build-*
         path: ${{ inputs.package_dir }}
         merge-multiple: true
+
+    # Attribute the release commit to the App bot instead of semantic-release-bot.
+    # Only the release job (skip_build) commits; build legs never push. The
+    # numeric user id in the noreply email links the commit to the App account
+    # so GitHub renders its avatar. semantic-release reads these GIT_* env vars.
+    - name: Configure git identity as App bot
+      if: ${{ inputs.skip_build == 'true' && inputs.bot_slug != '' }}
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        SLUG: ${{ inputs.bot_slug }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        user_id="$(gh api "/users/${SLUG}[bot]" --jq .id)"
+        {
+          echo "GIT_AUTHOR_NAME=${SLUG}[bot]"
+          echo "GIT_AUTHOR_EMAIL=${user_id}+${SLUG}[bot]@users.noreply.github.com"
+          echo "GIT_COMMITTER_NAME=${SLUG}[bot]"
+          echo "GIT_COMMITTER_EMAIL=${user_id}+${SLUG}[bot]@users.noreply.github.com"
+        } >> "$GITHUB_ENV"
 
     - name: Create Release
       env:

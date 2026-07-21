@@ -74,9 +74,21 @@ on:
         description: 'Glob of LFS files to fetch on the build checkout (gitignore-style, comma-separated). Empty = no LFS fetch.'
         type: string
         default: ''
+      cli_branch:
+        description: 'Branch of platform_cli to install (for testing unreleased release-tooling changes).'
+        type: string
+        default: 'main'
     secrets:
       token:
         required: true
+      # Optional: provide a GitHub App's credentials to push the release
+      # commit/tag and create the release AS the App (its identity and
+      # permissions) instead of with the PAT + semantic-release-bot. When
+      # omitted, falls back to `token` and the default identity.
+      gh_app_client_id:
+        required: false
+      gh_app_private_key:
+        required: false
 
 jobs:
   setup:
@@ -180,21 +192,44 @@ jobs:
           skip_tag: true
           gpu: ${{ inputs.gpu }}
           release_branches: ${{ inputs.release_branches }}
+          cli_branch: ${{ inputs.cli_branch }}
 
   release:
     name: Create Release
     runs-on: ${{ inputs.runner_release }}
     needs: build
+    # `secrets` isn't allowed in `if`, so surface "were App creds provided?" as
+    # an env flag the steps below can branch on.
+    env:
+      HAS_APP_CREDS: ${{ secrets.gh_app_client_id != '' && secrets.gh_app_private_key != '' }}
 
     steps:
+      # Mint an installation token so the release commit/tag is pushed and the
+      # GitHub release created AS the App (its permissions), not the PAT.
+      - name: Mint App token
+        id: app-token
+        if: ${{ env.HAS_APP_CREDS == 'true' }}
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ secrets.gh_app_client_id }}
+          private-key: ${{ secrets.gh_app_private_key }}
+
       - uses: actions/checkout@v6
         with:
           ref: ${{ github.sha }}
+          # checkout stores this token in the git remote; @semantic-release/git
+          # pushes the release commit + tag with it. App token when available,
+          # else the PAT (previous behaviour).
+          token: ${{ steps.app-token.outputs.token || secrets.token }}
 
       - name: Release
         uses: Greenroom-Robotics/ros_semantic_release_action@main
         with:
-          token: ${{ secrets.token }}
+          token: ${{ steps.app-token.outputs.token || secrets.token }}
+          # bot_slug defaults to the greenroom App bot in the action, so the
+          # release commit is attributed to it by default. App creds (above)
+          # additionally give the push the App's permissions; without them the
+          # commit is still labelled the bot but pushed with the PAT.
           package_dir: ${{ inputs.package_dir }}
           package: ${{ inputs.package }}
           github_release: ${{ !inputs.skip_tag }}
@@ -203,3 +238,4 @@ jobs:
           skip_build: true
           skip_tag: ${{ inputs.skip_tag }}
           release_branches: ${{ inputs.release_branches }}
+          cli_branch: ${{ inputs.cli_branch }}
