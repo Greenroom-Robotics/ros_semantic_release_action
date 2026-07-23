@@ -1,0 +1,150 @@
+name: Deb + Pixi Release (transition)
+
+# Reusable "transition stage" release workflow: encapsulates the deb-release +
+# pixi-recipes-PR pattern that repos like platform_toolbox currently hand-roll
+# in their own release.yml (deb job -> pixi job, deb owns tagging). Also adds
+# a `pixi-verify` job that proves the pixi build path works, in parallel with
+# the deb build, before the recipes-pr job opens a PR against the tag deb
+# creates.
+#
+# Callers keep their own workflow_dispatch inputs (package dropdown, distro
+# flags) and forward them here via `uses: ./.github/workflows/deb-pixi-release.yml`
+# with `with:`/`secrets:`.
+
+on:
+  workflow_call:
+    inputs:
+      package:
+        description: 'Package to release (empty = all)'
+        type: string
+        default: ''
+      package_dir:
+        description: 'Directory containing packages'
+        type: string
+        default: './'
+      build_kilted:
+        description: 'Build for Kilted'
+        type: boolean
+        default: true
+      build_jazzy:
+        description: 'Build for Jazzy'
+        type: boolean
+        default: false
+      build_iron:
+        description: 'Build for Iron'
+        type: boolean
+        default: false
+      changelog:
+        description: 'Generate changelog'
+        type: boolean
+        default: false
+      ros_distro:
+        description: 'ROS distro identifier for the conda recipe (the pixi recipe path is kilted-native regardless of which distros are built as debs).'
+        type: string
+        default: 'kilted'
+      runner_pixi:
+        description: 'Runner for the pixi-verify job (builds a conda package, so bigger than a plain checkout runner).'
+        type: string
+        default: 'runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/volume=150gb'
+    secrets:
+      token:
+        description: 'Forwarded to the deb release.yml (github_release + git push).'
+        required: true
+      gh-app-client-id:
+        description: 'GitHub App client id used to mint a token for private deps, the pixi build, and the recipes PR.'
+        required: true
+      gh-app-private-key:
+        description: 'GitHub App private key (PEM) corresponding to gh-app-client-id.'
+        required: true
+      azure-client-id:
+        description: 'AZURE_CLIENT_ID — federated identity bound to the calling repo.'
+        required: true
+      azure-tenant-id:
+        description: 'AZURE_TENANT_ID for the channel storage account.'
+        required: true
+      azure-subscription-id:
+        description: 'AZURE_SUBSCRIPTION_ID for the channel storage account.'
+        required: true
+
+jobs:
+  # Deb release: builds debs per arch/distro, owns tagging (skip_tag: false),
+  # cuts the GitHub release. Same reusable workflow platform_toolbox etc. call
+  # directly today.
+  deb:
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write
+    uses: ./.github/workflows/release.yml
+    with:
+      package: ${{ inputs.package }}
+      package_dir: ${{ inputs.package_dir }}
+      build_kilted: ${{ inputs.build_kilted }}
+      build_jazzy: ${{ inputs.build_jazzy }}
+      build_iron: ${{ inputs.build_iron }}
+      changelog: ${{ inputs.changelog }}
+      skip_tag: false
+    secrets:
+      token: ${{ secrets.token }}
+
+  # Runs in parallel with `deb`. Proves the pixi build path works before the
+  # recipes-pr job below opens a PR against the tag `deb` creates - a broken
+  # pixi build fails loudly here instead of surfacing later as a failed recipe
+  # build in ros-recipes.
+  pixi-verify:
+    runs-on: ${{ inputs.runner_pixi }}
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+
+      # TODO: flip to @v6 before merge
+      - uses: greenroom-robotics/mise/.github/actions/setup@feat/lockfiles-v6
+        id: setup
+        with:
+          gh-app-client-id: ${{ secrets.gh-app-client-id }}
+          gh-app-private-key: ${{ secrets.gh-app-private-key }}
+          azure-client-id: ${{ secrets.azure-client-id }}
+          azure-tenant-id: ${{ secrets.azure-tenant-id }}
+          azure-subscription-id: ${{ secrets.azure-subscription-id }}
+
+      - name: Run mise ci build
+        shell: bash
+        run: |
+          args=(--package-dir "${{ inputs.package_dir }}")
+          if [ -n "${{ inputs.package }}" ]; then
+            args+=(--package "${{ inputs.package }}")
+          fi
+          pixi run --manifest-path "$MISE_MANIFEST" mise ci build "${args[@]}"
+
+      - if: always()
+        # TODO: flip to @v6 before merge
+        uses: greenroom-robotics/conda-channel-proxy/.github/actions/teardown@v5
+
+  # Mirrors platform_toolbox's pixi job: opens/updates the conda recipe PR
+  # against the tag `deb` just created, once both the deb release and the
+  # pixi build have been verified.
+  recipes-pr:
+    needs: [deb, pixi-verify]
+    runs-on: runs-on=${{ github.run_id }}/runner=2cpu-linux-x64
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      # TODO: flip to @v6 before merge
+      - uses: greenroom-robotics/mise/.github/actions/recipes-pr@feat/lockfiles-v6
+        with:
+          dispatch-sha: ${{ github.sha }}
+          package: ${{ inputs.package }}
+          ros-distro: ${{ inputs.ros_distro }}
+          gh-app-client-id: ${{ secrets.gh-app-client-id }}
+          gh-app-private-key: ${{ secrets.gh-app-private-key }}
+          azure-client-id: ${{ secrets.azure-client-id }}
+          azure-tenant-id: ${{ secrets.azure-tenant-id }}
+          azure-subscription-id: ${{ secrets.azure-subscription-id }}
