@@ -69,10 +69,7 @@ on:
 jobs:
   # Deb release: builds debs per arch/distro, owns tagging (skip_tag: false),
   # cuts the GitHub release. Same reusable workflow platform_toolbox etc. call
-  # directly today. Its builds run in parallel with pixi-verify, but its final
-  # release job (the part that publishes debs and tags) gates on pixi-verify
-  # via gate_on_job — a broken pixi build aborts the release before anything
-  # ships, without delaying the slow deb build matrix.
+  # directly today.
   deb:
     permissions:
       contents: write
@@ -87,15 +84,13 @@ jobs:
       build_iron: ${{ inputs.build_iron }}
       changelog: ${{ inputs.changelog }}
       skip_tag: false
-      gate_on_job: pixi-verify
     secrets:
       token: ${{ secrets.token }}
 
-  # Runs in parallel with the deb builds; deb's release job gates on this
-  # succeeding (gate_on_job above). Proves the pixi build path works before
-  # anything publishes - a broken pixi build aborts the release instead of
-  # surfacing after the debs shipped, or later as a failed recipe build in
-  # ros-recipes.
+  # Runs in parallel with `deb`. Proves the pixi build path works before the
+  # recipes-pr job below opens a PR against the tag `deb` creates - a broken
+  # pixi build fails loudly here instead of surfacing later as a failed recipe
+  # build in ros-recipes.
   pixi-verify:
     runs-on: ${{ inputs.runner_pixi }}
     permissions:
