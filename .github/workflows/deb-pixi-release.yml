@@ -34,6 +34,14 @@ on:
         description: 'Build for Iron'
         type: boolean
         default: false
+      build_amd64:
+        description: 'Build debs for amd64'
+        type: boolean
+        default: true
+      build_arm64:
+        description: 'Build debs for arm64'
+        type: boolean
+        default: true
       changelog:
         description: 'Generate changelog'
         type: boolean
@@ -82,6 +90,8 @@ jobs:
       build_kilted: ${{ inputs.build_kilted }}
       build_jazzy: ${{ inputs.build_jazzy }}
       build_iron: ${{ inputs.build_iron }}
+      build_amd64: ${{ inputs.build_amd64 }}
+      build_arm64: ${{ inputs.build_arm64 }}
       changelog: ${{ inputs.changelog }}
       skip_tag: false
     secrets:
