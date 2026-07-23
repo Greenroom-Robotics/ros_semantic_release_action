@@ -78,6 +78,10 @@ on:
         description: 'Branch of platform_cli to install (for testing unreleased release-tooling changes).'
         type: string
         default: 'main'
+      gate_on_job:
+        description: 'Name (suffix-matched) of a sibling job in this run that must succeed before the release job tags/publishes. Lets a verification job run in parallel with the slow deb builds while still gating the actual release on it. Empty = no gate.'
+        type: string
+        default: ''
     secrets:
       token:
         required: true
@@ -204,6 +208,33 @@ jobs:
       HAS_APP_CREDS: ${{ secrets.gh_app_client_id != '' && secrets.gh_app_private_key != '' }}
 
     steps:
+      # Optional cross-job gate: block tagging/publishing until a sibling job
+      # in this same run (e.g. a pixi-verify job running in parallel with the
+      # deb builds) succeeds. By this point the slow build matrix has already
+      # finished, so the gate job is normally long done and this returns
+      # immediately. Uses the PAT because the caller's GITHUB_TOKEN permissions
+      # block usually doesn't grant `actions: read`.
+      - name: Wait for gate job (${{ inputs.gate_on_job }})
+        if: ${{ inputs.gate_on_job != '' }}
+        env:
+          GH_TOKEN: ${{ secrets.token }}
+          GATE: ${{ inputs.gate_on_job }}
+        run: |
+          set -euo pipefail
+          # 120 x 30s = 60min ceiling
+          for _ in $(seq 1 120); do
+            line=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/jobs?per_page=100" \
+              --jq '.jobs[] | select(.name | endswith(env.GATE)) | .status + ":" + (.conclusion // "")' | head -n1)
+            case "$line" in
+              completed:success) echo "gate job '$GATE' succeeded"; exit 0 ;;
+              completed:*) echo "::error::gate job '$GATE' concluded '${line#completed:}'; aborting release"; exit 1 ;;
+              "") echo "gate job '$GATE' not found in run yet; waiting" ;;
+              *) echo "gate job '$GATE' is '$line'; waiting" ;;
+            esac
+            sleep 30
+          done
+          echo "::error::timed out waiting for gate job '$GATE'"; exit 1
+
       # Mint an installation token so the release commit/tag is pushed and the
       # GitHub release created AS the App (its permissions), not the PAT.
       - name: Mint App token
