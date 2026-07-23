@@ -69,8 +69,11 @@ on:
 jobs:
   # Deb release: builds debs per arch/distro, owns tagging (skip_tag: false),
   # cuts the GitHub release. Same reusable workflow platform_toolbox etc. call
-  # directly today.
+  # directly today. Gated on pixi-verify: the deb release publishes debs and
+  # tags, so a broken pixi build must fail BEFORE it runs — otherwise debs
+  # ship and the tag lands with no conda artifact able to follow.
   deb:
+    needs: pixi-verify
     permissions:
       contents: write
       pull-requests: write
@@ -87,10 +90,9 @@ jobs:
     secrets:
       token: ${{ secrets.token }}
 
-  # Runs in parallel with `deb`. Proves the pixi build path works before the
-  # recipes-pr job below opens a PR against the tag `deb` creates - a broken
-  # pixi build fails loudly here instead of surfacing later as a failed recipe
-  # build in ros-recipes.
+  # Runs first, gating `deb`. Proves the pixi build path works before anything
+  # publishes - a broken pixi build fails loudly here instead of after the debs
+  # have already shipped, or later as a failed recipe build in ros-recipes.
   pixi-verify:
     runs-on: ${{ inputs.runner_pixi }}
     permissions:
