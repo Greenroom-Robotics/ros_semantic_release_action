@@ -66,6 +66,14 @@ on:
         description: 'Glob of LFS files to fetch on the build/pixi-verify checkouts (gitignore-style, comma-separated). Empty = no LFS fetch.'
         type: string
         default: ''
+      lfs_ignore_config_exclude:
+        description: 'Ignore the repo .lfsconfig `fetchexclude` on the pixi-verify checkout, making `lfs_include` authoritative. ONLY for repos whose fetchexclude is a blanket `*` (set to stop local auto-fetch). Leave false where fetchexclude names specific paths — overriding it there re-downloads exactly the artefacts it exists to skip.'
+        type: boolean
+        default: false
+      lfs_packages:
+        description: 'Newline- or comma-separated package names whose ros-recipes entry gets `lfs: true`, so the pixi-native buildfarm pulls their LFS objects too. Forwarded to mise recipes-pr. Authoritative per release: a released package not listed here has any existing `lfs: true` removed.'
+        type: string
+        default: ''
     secrets:
       token:
         description: 'Forwarded to the deb release.yml (github_release + git push).'
@@ -124,6 +132,28 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      # The deb job pulls LFS inside release.yml; pixi-verify checks out
+      # separately, so it needs its own pull for `lfs_include` to mean what its
+      # description says. Same glob, same `empty = no fetch` contract.
+      - name: Fetch LFS files
+        if: inputs.lfs_include != ''
+        shell: bash
+        env:
+          INCLUDE: ${{ inputs.lfs_include }}
+          IGNORE_CONFIG_EXCLUDE: ${{ inputs.lfs_ignore_config_exclude }}
+        run: |
+          set -euo pipefail
+          git lfs install --local
+          # git-lfs overrides fetchinclude and fetchexclude INDEPENDENTLY: with
+          # only --include, a configured `fetchexclude = *` still wins and
+          # nothing is fetched. --exclude="" fixes that but also discards a
+          # TARGETED fetchexclude, which is a deliberate cost control. Opt-in.
+          if [ "$IGNORE_CONFIG_EXCLUDE" = "true" ]; then
+            git lfs pull --include="$INCLUDE" --exclude=""
+          else
+            git lfs pull --include="$INCLUDE"
+          fi
+
       - uses: greenroom-robotics/mise/.github/actions/setup@v8
         id: setup
         with:
@@ -162,6 +192,7 @@ jobs:
           dispatch-sha: ${{ github.sha }}
           package: ${{ inputs.package }}
           ros-distro: ${{ inputs.ros_distro }}
+          lfs-packages: ${{ inputs.lfs_packages }}
           gh-app-client-id: ${{ secrets.gh-app-client-id }}
           gh-app-private-key: ${{ secrets.gh-app-private-key }}
           azure-client-id: ${{ secrets.azure-client-id }}
