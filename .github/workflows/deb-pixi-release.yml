@@ -191,6 +191,7 @@ jobs:
         with:
           dispatch-sha: ${{ github.sha }}
           package: ${{ inputs.package }}
+          package-dir: ${{ inputs.package_dir }}
           ros-distro: ${{ inputs.ros_distro }}
           lfs-packages: ${{ inputs.lfs_packages }}
           gh-app-client-id: ${{ secrets.gh-app-client-id }}
